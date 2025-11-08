@@ -1,0 +1,20 @@
+services:
+  - type: web
+    name: teataimi-web
+    env: python
+    plan: free
+    region: oregon
+    buildCommand: pip install -r requirements.txt
+    startCommand: gunicorn --bind 0.0.0.0:$PORT testViewDatabase:app
+    repo: https://github.com/DevMankind/teataimi_dev
+    branch: main
+    envVars:
+      - key: DB_HOST
+        # set this value in the Render dashboard or leave blank to configure later
+        value: ""
+      - key: DB_USER
+        value: ""
+      - key: DB_PASS
+        value: ""
+      - key: DB_NAME
+        value: ""
