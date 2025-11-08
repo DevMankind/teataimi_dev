@@ -1,16 +1,27 @@
 from flask import Flask, render_template_string, request, redirect, url_for
 import mysql.connector
 from datetime import datetime
+import os
 
 app = Flask(__name__)
 
-# Connect to MySQL database
-db = mysql.connector.connect(
-    host="localhost",
-    user="root",
-    password="",
-    database="teataimi"
-)
+# Connect to MySQL database using environment variables for deployment
+DB_HOST = os.environ.get('DB_HOST', 'localhost')
+DB_USER = os.environ.get('DB_USER', 'root')
+DB_PASS = os.environ.get('DB_PASS', '')
+DB_NAME = os.environ.get('DB_NAME', 'teataimi')
+
+def get_db_connection():
+    return mysql.connector.connect(
+        host=DB_HOST,
+        user=DB_USER,
+        password=DB_PASS,
+        database=DB_NAME
+    )
+
+# Keep a module-level connection for quick local use; production platforms should use
+# connection pooling or create per-request connections via get_db_connection().
+db = get_db_connection()
 
 @app.route('/')
 def index():

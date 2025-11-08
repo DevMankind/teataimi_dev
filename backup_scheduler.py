@@ -14,13 +14,16 @@ def backup_database():
     timestamp = datetime.datetime.now().strftime('%Y%m%d_%H%M%S')
     backup_file = os.path.join(backup_dir, f'teataimi_backup_{timestamp}.sql')
     
-    # Database credentials
-    DB_USER = "root"
-    DB_PASS = ""
-    DB_NAME = "teataimi"
-    
-    # MySQL dump command
-    cmd = f'mysqldump -u {DB_USER} {DB_NAME} > "{backup_file}"'
+    # Database credentials from environment (safer for deploys)
+    DB_USER = os.environ.get('DB_USER', 'root')
+    DB_PASS = os.environ.get('DB_PASS', '')
+    DB_NAME = os.environ.get('DB_NAME', 'teataimi')
+
+    # MySQL dump command (if DB_PASS is empty omit -p flag)
+    if DB_PASS:
+        cmd = f'mysqldump -u {DB_USER} -p{DB_PASS} {DB_NAME} > "{backup_file}"'
+    else:
+        cmd = f'mysqldump -u {DB_USER} {DB_NAME} > "{backup_file}"'
     
     try:
         subprocess.run(cmd, shell=True, check=True)

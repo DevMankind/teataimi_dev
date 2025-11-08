@@ -1,0 +1,16 @@
+venv/
+.venv/
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+env/
+ENV/
+venv/
+.env
+backups/
+.DS_Store
+/*.sqlite3
+/.vscode/
+*.log
+node_modules/
