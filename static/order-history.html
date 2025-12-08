@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>My Orders | Teataimi</title>
+<link rel="stylesheet" href="style.css">
+<link rel="stylesheet"
+    href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+
+<header class="nav">
+  <div class="nav-inner">
+    <div class="brand">
+      <img src="images/logo.png" alt="Teataimi Logo" class="brand-logo-img">
+      <span class="brand-name">Teataimi</span>
+    </div>
+
+    <div class="nav-links">
+      <a href="index.html">Home</a>
+      <a href="menu.html">Menu</a>
+      <a href="about.html">About</a>
+      <a href="track.html">Track Order</a>
+
+      <a id="nav-orders" href="order-history.html" style="display:none;">My Orders</a>
+      <a id="nav-cart" href="cart.html" class="icon-btn">🛒</a>
+
+      <a id="nav-logout" href="#" onclick="logoutUser()">
+        <i class="fa-solid fa-right-from-bracket"></i>
+      </a>
+
+      <!-- AUTH BUTTONS WHEN NOT LOGGED IN -->
+      <a id="nav-login" href="login.html">Login</a>
+      <a id="nav-register" href="register.html">Register</a>
+    </div>
+</header>
+
+<section class="form-section">
+  <h1>My Orders</h1>
+
+  <div id="ordersContainer" class="order-list"></div>
+</section>
+
+<!-- FOOTER -->
+<footer class="footer">
+  <div class="footer-inner">
+    <div class="footer-left">
+      <div class="brand">
+        <span class="brand-name">Teataimi</span>
+      </div>
+      <p class="muted">Delicious desserts • Local humble dessert shop</p>
+    </div>
+
+    <div class="footer-block">
+    <strong>Contact Us</strong><br>
+    
+    <!-- Instagram Link -->
+    <a href="https://instagram.com/teataimi" target="_blank" style="display:flex; align-items:center; gap:5px; text-decoration:none; color:#4b3d2f; margin-bottom:5px;">
+        <img src="images/instagram.avif" alt="Instagram" style="width:20px; height:20px;">
+        teataimi
+    </a>
+    
+    <!-- WhatsApp Link -->
+    <a href="https://wa.me/601168325354" target="_blank" style="display:flex; align-items:center; gap:5px; text-decoration:none; color:#4b3d2f; margin-bottom:5px;">
+        <img src="images/whatsapp.avif" alt="WhatsApp" style="width:20px; height:20px;">
+        +60 116832 5354
+    </a>
+   </div>
+  </div>
+
+  <div class="copy">© 2025 Teataimi. All rights reserved.</div>
+</footer>
+
+<script src="auth.js"></script>
+<script>
+function loadOrderHistory() {
+  let user = JSON.parse(localStorage.getItem("loggedInUser"));
+  let orders = JSON.parse(localStorage.getItem("orders")) || [];
+  let container = document.getElementById("ordersContainer");
+
+  if (!user) return container.innerHTML = "<p>Please login to view orders.</p>";
+
+  container.innerHTML = "";
+
+  orders.forEach((order, realIndex) => {
+    if (order.user !== user.email) return;
+
+    container.innerHTML += `
+  <div class="order-box">
+    <h3>Order #${order.orderNo}</h3>
+
+    <p><strong>Name:</strong> ${order.name}</p>
+    <p><strong>Phone:</strong> ${order.phone}</p>
+    <p><strong>Delivery Option:</strong> ${order.option}</p>
+    <p><strong>Address:</strong> ${order.address}</p>
+    <p><strong>Date:</strong> ${order.date} (${order.time})</p>
+    <p><strong>Payment:</strong> ${order.payment}</p>
+    <p><strong>Status:</strong> ${order.status}</p>
+
+    <h4>Items:</h4>
+    <div class="order-items">
+    ${order.items.map(i => `
+      <div class="order-item">
+        <img src="${i.image}">
+        <span>${i.name} x ${i.quantity}</span>
+      </div>
+    `).join("")}
+    </div>
+
+ <p class="total">
+  <span>Total:</span>
+  <span>
+    RM${
+      order.items.reduce((sum,i)=>sum+i.price*i.quantity,0) 
+      + (order.option === "Delivery" ? 8 : 0)
+    }
+  </span>
+</p>
+
+
+
+    <div class="order-actions">
+      <button onclick="reorder(${realIndex})" class="btn-sm btn-ghost">Reorder</button>
+      ${order.status === "Pending"
+        ? `<button onclick="cancelOrder(${realIndex})" class="btn-sm btn-danger">Cancel</button>`
+        : ""
+      }
+    </div>
+  </div>
+`;
+
+  });
+}
+loadOrderHistory();
+
+
+/* Cancel Order */
+function cancelOrder(realIndex) {
+  let orders = JSON.parse(localStorage.getItem("orders")) || [];
+  if (!confirm("Cancel this order?")) return;
+
+  orders.splice(realIndex, 1);
+  localStorage.setItem("orders", JSON.stringify(orders));
+  loadOrderHistory();
+}
+
+
+/* Reorder */
+function reorder(realIndex) {
+  let orders = JSON.parse(localStorage.getItem("orders")) || [];
+  let user = JSON.parse(localStorage.getItem("loggedInUser"));
+
+  let cartKey = "cart_" + user.email;
+  localStorage.setItem(cartKey, JSON.stringify(orders[realIndex].items));
+
+  window.location.href = "cart.html";
+}
+
+</script>
+
+</body>
+</html>

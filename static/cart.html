@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Your Cart | Teataimi</title>
+  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet"
+    href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+
+<header class="nav">
+  <div class="nav-inner">
+    <div class="brand">
+      <img src="images/logo.png" alt="Teataimi Logo" class="brand-logo-img">
+      <span class="brand-name">Teataimi</span>
+    </div>
+
+    <div class="nav-links">
+      <a href="index.html">Home</a>
+      <a href="menu.html">Menu</a>
+      <a href="about.html">About</a>
+      <a href="track.html">Track Order</a>
+
+      <a id="nav-orders" href="order-history.html" style="display:none;">My Orders</a>
+      <a id="nav-cart" href="cart.html" class="icon-btn">🛒</a>
+
+      <a id="nav-logout" href="#" onclick="logoutUser()">
+        <i class="fa-solid fa-right-from-bracket"></i>
+      </a>
+
+      <!-- AUTH BUTTONS WHEN NOT LOGGED IN -->
+      <a id="nav-login" href="login.html">Login</a>
+      <a id="nav-register" href="register.html">Register</a>
+    </div>
+  </div>
+</header>
+
+<!-- MAIN CART SECTION -->
+  <main class="cart-container">
+    <h1 style="margin-bottom:12px; color:var(--accent)">Your Cart</h1>
+
+    <div class="cart-grid">
+
+      <!-- LEFT COLUMN: CART ITEMS LIST -->
+      <section class="cart-items-col">
+        <div id="cart-items">
+          <!-- JS will insert list of items here -->
+        </div>
+      </section>
+
+      <!-- RIGHT COLUMN: ORDER SUMMARY -->
+      <aside class="cart-summary-col">
+        <div class="cart-summary">
+          <h3>Order Summary</h3>
+
+          <div class="summary-line">
+            <span>Subtotal</span>
+            <span id="cart-total">RM 0.00</span>
+          </div>
+
+          <div class="summary-line muted">
+            <span>Delivery</span>
+            <span>To be calculated</span>
+          </div>
+
+          <div class="summary-line total">
+            <strong>Total</strong>
+            <strong id="cart-total-final">RM 0.00</strong>
+          </div>
+
+          <!-- CHECKOUT BUTTON -->
+          <button id="checkout-btn" class="btn btn-primary" style="width:100%; margin-top:12px;">
+            Proceed to Checkout
+          </button>
+
+          <a href="menu.html" class="btn btn-ghost" style="display:block; text-align:center; margin-top:10px;">
+            Continue Shopping
+          </a>
+        </div>
+      </aside>
+
+    </div>
+  </main>
+
+<!-- FOOTER -->
+<footer class="footer">
+  <div class="footer-inner">
+    <div class="footer-left">
+      <div class="brand">
+        <span class="brand-name">Teataimi</span>
+      </div>
+      <p class="muted">Delicious desserts • Local humble dessert shop</p>
+    </div>
+
+    <div class="footer-block">
+    <strong>Contact Us</strong><br>
+    
+    <!-- Instagram Link -->
+    <a href="https://instagram.com/teataimi" target="_blank" style="display:flex; align-items:center; gap:5px; text-decoration:none; color:#4b3d2f; margin-bottom:5px;">
+        <img src="images/instagram.avif" alt="Instagram" style="width:20px; height:20px;">
+        teataimi
+    </a>
+    
+    <!-- WhatsApp Link -->
+    <a href="https://wa.me/601168325354" target="_blank" style="display:flex; align-items:center; gap:5px; text-decoration:none; color:#4b3d2f; margin-bottom:5px;">
+        <img src="images/whatsapp.avif" alt="WhatsApp" style="width:20px; height:20px;">
+        +60 116832 5354
+    </a>
+   </div>
+  </div>
+
+  <div class="copy">© 2025 Teataimi. All rights reserved.</div>
+</footer>
+
+<script defer src="auth.js"></script>
+</body>
+</html>

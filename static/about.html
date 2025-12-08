@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>About Us | Teataimi</title>
+  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet"
+    href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+
+<header class="nav">
+  <div class="nav-inner">
+    <div class="brand">
+      <img src="images/logo.png" alt="Teataimi Logo" class="brand-logo-img">
+      <span class="brand-name">Teataimi</span>
+    </div>
+
+    <div class="nav-links">
+      <a href="index.html">Home</a>
+      <a href="menu.html">Menu</a>
+      <a href="about.html">About</a>
+      <a href="track.html">Track Order</a>
+
+      <a id="nav-orders" href="order-history.html" style="display:none;">My Orders</a>
+      <a id="nav-cart" href="cart.html" class="icon-btn">🛒</a>
+
+      <a id="nav-logout" href="#" onclick="logoutUser()">
+        <i class="fa-solid fa-right-from-bracket"></i>
+      </a>
+
+      <!-- AUTH BUTTONS WHEN NOT LOGGED IN -->
+      <a id="nav-login" href="login.html">Login</a>
+      <a id="nav-register" href="register.html">Register</a>
+    </div>
+  </div>
+</header>
+
+<!-- Our Story -->
+  <section class="features-section story-background">
+    <h2>Our Story</h2>
+    <p style="max-width:700px; margin:0 auto; text-align:center; font-size:18px; line-height:1.8;">
+      Welcome to Teataimi, a little slice of sweetness tucked away in the heart of Batu Maung, where our journey began simply with a deep passion for baking right here in our own kitchen. This isn't a factory; it's a homebased dessert shop driven by the desire to share authentic homemade comfort and the kind of treats that truly warm the soul. Batu Maung is much more than just our location; it serves as our enduring inspiration and the foundation of our strong community ties. This local pride guides us as we meticulously craft every single item from our delightful cakesicles and perfectly baked cookies to our signature cakesall made in small batches to guarantee maximum flavor and genuine, uncompromised quality. Our ultimate mission is beautifully simple to create perfect moments of peace in your busy day and make your life a little sweeter, delivering honest, genuine goodness straight from our humble kitchen to your hand. We are genuinely grateful for your trust and support, and we eagerly look forward to baking something truly special for your next tea time.
+    </p>
+    </div>
+  </section>
+
+  <!-- FOOTER -->
+<footer class="footer">
+  <div class="footer-inner">
+    <div class="footer-left">
+      <div class="brand">
+        <span class="brand-name">Teataimi</span>
+      </div>
+      <p class="muted">Delicious desserts • Local humble dessert shop</p>
+    </div>
+
+    <div class="footer-block">
+    <strong>Contact Us</strong><br>
+    
+    <!-- Instagram Link -->
+    <a href="https://instagram.com/teataimi" target="_blank" style="display:flex; align-items:center; gap:5px; text-decoration:none; color:#4b3d2f; margin-bottom:5px;">
+        <img src="images/instagram.avif" alt="Instagram" style="width:20px; height:20px;">
+        teataimi
+    </a>
+    
+    <!-- WhatsApp Link -->
+    <a href="https://wa.me/601168325354" target="_blank" style="display:flex; align-items:center; gap:5px; text-decoration:none; color:#4b3d2f; margin-bottom:5px;">
+        <img src="images/whatsapp.avif" alt="WhatsApp" style="width:20px; height:20px;">
+        +60 116832 5354
+    </a>
+   </div>
+  </div>
+
+  <div class="copy">© 2025 Teataimi. All rights reserved.</div>
+</footer>
+
+<script defer src="auth.js"></script>
+</body>
+</html>

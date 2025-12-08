@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Menu | Teataimi</title>
+  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet"
+    href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+
+<!-- NAVIGATION -->
+<header class="nav">
+  <div class="nav-inner">
+    <div class="brand">
+      <img src="images/logo.png" alt="Teataimi Logo" class="brand-logo-img">
+      <span class="brand-name">Teataimi</span>
+    </div>
+
+    <div class="nav-links">
+      <a href="index.html">Home</a>
+      <a href="menu.html">Menu</a>
+      <a href="about.html">About</a>
+      <a href="track.html">Track Order</a>
+
+      <a id="nav-orders" href="order-history.html" style="display:none;">My Orders</a>
+      <a id="nav-cart" href="cart.html" class="icon-btn">🛒</a>
+
+      <a id="nav-logout" href="#" onclick="logoutUser()">
+        <i class="fa-solid fa-right-from-bracket"></i>
+      </a>
+
+      <!-- AUTH BUTTONS WHEN NOT LOGGED IN -->
+      <a id="nav-login" href="login.html">Login</a>
+      <a id="nav-register" href="register.html">Register</a>
+    </div>
+</header>
+
+<!-- MENU SECTION -->
+<section class="featured">
+  <div class="section-head">
+    <h2>Our Menu</h2>
+    <p class="muted">Freshly baked desserts</p>
+  </div>
+
+  <div class="product-grid">
+
+    <!--CHEESECAKE -->
+    <div class="product-card">
+      <img src="images/mbcc.png" alt="Mini Burnt Cheesecake" class="product-img">
+      <div class="product-body">
+        <h3>Mini Burnt Cheesecake</h3>
+        <p class="product-desc">12 pcs of creamy, velvety Basque-style cheesecake.</p>
+        <div class="product-meta">
+          <span class="price">RM 45 / box</span>
+          <button class="btn btn-sm" onclick="addToCart('Mini Burnt Cheesecake',45,'images/mbcc.png')">Add</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="product-card">
+      <img src="images/lbccake.png" alt=" Lotus Biscoff Burnt Cheesecake" class="product-img">
+      <div class="product-body">
+        <h3>Lotus Biscoff Mini Burnt Cheesecake</h3>
+        <p class="product-desc">12 pcs of creamy cheesecake infused with Biscoff spread.</p>
+        <div class="product-meta">
+          <span class="price">RM 50 / box</span>
+          <button class="btn btn-sm" onclick="addToCart('Lotus Biscoff Burnt Cheesecake',50,'images/lbccake.png')">Add</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="product-card">
+      <img src="images/ncc.png" alt=" Nutella Burnt Cheesecake" class="product-img">
+      <div class="product-body">
+        <h3>Nutella Mini Burnt Cheesecake</h3>
+        <p class="product-desc">12 pcs of creamy cheesecake swirled with decadent, baked Nutella.</p>
+        <div class="product-meta">
+          <span class="price">RM 50 / box</span>
+          <button class="btn btn-sm" onclick="addToCart('Nutella Burnt Cheesecake',50,'images/ncc.png')">Add</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="product-card">
+      <img src="images/mixfruitcc.png" alt=" Mix Fruit Burnt Cheesecake" class="product-img">
+      <div class="product-body">
+        <h3>Mix Fruit Mini Burnt Cheesecake</h3>
+        <p class="product-desc">12 pcs of basque cheesecake topped with a mix of berries and fruits.</p>
+        <div class="product-meta">
+          <span class="price">RM 55 / box</span>
+          <button class="btn btn-sm" onclick="addToCart('Mix Fruit Burnt Cheesecake',55,'images/mixfruitcc.png')">Add</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- BROWNIES -->
+    <div class="product-card">
+      <img src="images/brownies.png" alt="Brownies" class="product-img">
+      <div class="product-body">
+        <h3>Brownies</h3>
+        <p class="product-desc">9" of fudgy and chocolatey with a perfect crackly top.</p>
+        <div class="product-meta">
+          <span class="price">RM 60 / box</span>
+          <button class="btn btn-sm" onclick="addToCart('Brownies',60,'images/brownies.png')">Add</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="product-card">
+      <img src="images/lbb.png" alt="Lotus Biscoff Brownies" class="product-img">
+      <div class="product-body">
+        <h3>Lotus Biscoff Brownies</h3>
+        <p class="product-desc">9" of fudgy brownies topped with creamy Biscoff spread.</p>
+        <div class="product-meta">
+          <span class="price">RM 70 / box</span>
+          <button class="btn btn-sm" onclick="addToCart('Lotus Biscoff Brownies',70,'images/lbb.png')">Add</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="product-card">
+      <img src="images/nb.png" alt="Nutella Brownies" class="product-img">
+      <div class="product-body">
+        <h3>Nutella Brownies</h3>
+        <p class="product-desc">9" of gooey brownies marbled throughout with warm Nutella.</p>
+        <div class="product-meta">
+          <span class="price">RM 70 / box</span>
+          <button class="btn btn-sm" onclick="addToCart('Nutella Brownies',70,'images/nb.png')">Add</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="product-card">
+      <img src="images/bc.png" alt="Brownies Cupcake" class="product-img">
+      <div class="product-body">
+        <h3>Brownies Cupcake</h3>
+        <p class="product-desc"> 6 pcs of fudgy, dense brownie baked in a cupcake form.</p>
+        <div class="product-meta">
+          <span class="price">RM 30 / box</span>
+          <button class="btn btn-sm" onclick="addToCart('Brownies Cupcake',30,'images/bc.png')">Add</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- CHEESE TART -->
+    <div class="product-card">
+     <img src="images/lbc.png" alt="Lotus Biscoff Cheese Tart" class="product-img">
+      <div class="product-body">
+        <h3>Lotus Biscoff Cheese Tart</h3>
+        <p class="product-desc">25 pcs of buttery tart shell, creamy cheese filling, topped with Biscoff glaze and crumbs.</p>
+        <div class="product-meta">
+          <span class="price">RM 50 / box</span>
+          <button class="btn btn-sm" onclick="addToCart('Lotus Biscoff Cheese Tart',50,'images/lbc.png')">Add</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="product-card">
+     <img src="images/nct.png" alt="Nutella Cheese Tart" class="product-img">
+      <div class="product-body">
+        <h3>Nutella Cheese Tart</h3>
+        <p class="product-desc">25 pcs of delicate tart filled with creamy cheese and a swirl of Nutella.</p>
+        <div class="product-meta">
+          <span class="price">RM 50 / box</span>
+          <button class="btn btn-sm" onclick="addToCart('Nutella Cheese Tart',50,'images/nct.png')">Add</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="product-card">
+     <img src="images/bct.png" alt="Blueberry Cheese Tart" class="product-img">
+      <div class="product-body">
+        <h3>Blueberry Cheese Tart</h3>
+        <p class="product-desc">25 pcs of buttery tart with creamy cheese and a burst of blueberry topping.</p>
+        <div class="product-meta">
+          <span class="price">RM 50 / box</span>
+          <button class="btn btn-sm" onclick="addToCart('Blueberry Cheese Tart',50,'images/bct.png')">Add</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="product-card">
+     <img src="images/matchact.png" alt="Matcha Cheese Tart" class="product-img">
+      <div class="product-body">
+        <h3>Matcha Cheese Tart</h3>
+        <p class="product-desc">25 pcs of crisp tart shell with creamy cheese and matcha green tea filling.</p>
+        <div class="product-meta">
+          <span class="price">RM 50 / box</span>
+          <button class="btn btn-sm" onclick="addToCart('Matcha Cheese Tart',50,'images/matchact.png')">Add</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- MIX -->
+    <div class="product-card">
+      <img src="images/mixcc.png" alt="Mix Mini Burnt Cheesecake" class="product-img">
+      <div class="product-body">
+        <h3>Mix Mini Burnt Cheesecake</h3>
+        <p class="product-desc">A trio of signature velvety cheesecakes, Nutella, Strawberry & Lotus Biscoff.</p>
+        <div class="product-meta">
+          <span class="price">RM 50 / box</span>
+          <button class="btn btn-sm" onclick="addToCart('Mix Mini Burnt Cheesecake',50,'images/mixcc.png')">Add</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="product-card">
+      <img src="images/mixbs.png" alt="Mix Brownies" class="product-img">
+      <div class="product-body">
+        <h3>Mix Brownies</h3>
+        <p class="product-desc">A box with Biscoff-topped brownies and Nutella-swirled brownies.</p>
+        <div class="product-meta">
+          <span class="price">RM 70 / box</span>
+          <button class="btn btn-sm" onclick="addToCart('Mix Brownies',70,'images/mixbs.png')">Add</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="product-card">
+     <img src="images/newmixct.png" alt="Mix Cheese Tart" class="product-img">
+      <div class="product-body">
+        <h3>Mix Cheese Tart</h3>
+        <p class="product-desc"> A box of cheese tarts with 4 flavors: Biscoff, Nutella, Blueberry & Matcha.</p>
+        <div class="product-meta">
+          <span class="price">RM 50 / box</span>
+          <button class="btn btn-sm" onclick="addToCart('Mix Cheese Tart',50,'images/mixct.png')">Add</button>
+        </div>
+      </div>
+    </div>
+
+<!-- CAKESICLES -->
+    <div class="product-card">
+     <img src="images/cakesicles.png" alt="Cakesicles" class="product-img">
+      <div class="product-body">
+        <h3>Cakesicles</h3>
+        <p class="product-desc">6 pcs of cake and frosting, molded like a popsicle, coated in chocolate shell.</p>
+        <div class="product-meta">
+          <span class="price">RM 60 / box</span>
+          <button class="btn btn-sm" onclick="addToCart('Cakesicles',60,'images/cakesicles.png')">Add</button>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer class="footer">
+  <div class="footer-inner">
+    <div class="footer-left">
+      <div class="brand">
+        <span class="brand-name">Teataimi</span>
+      </div>
+      <p class="muted">Delicious desserts • Local humble dessert shop</p>
+    </div>
+
+    <div class="footer-block">
+    <strong>Contact Us</strong><br>
+    
+    <!-- Instagram Link -->
+    <a href="https://instagram.com/teataimi" target="_blank" style="display:flex; align-items:center; gap:5px; text-decoration:none; color:#4b3d2f; margin-bottom:5px;">
+        <img src="images/instagram.avif" alt="Instagram" style="width:20px; height:20px;">
+        teataimi
+    </a>
+    
+    <!-- WhatsApp Link -->
+    <a href="https://wa.me/601168325354" target="_blank" style="display:flex; align-items:center; gap:5px; text-decoration:none; color:#4b3d2f; margin-bottom:5px;">
+        <img src="images/whatsapp.avif" alt="WhatsApp" style="width:20px; height:20px;">
+        +60 116832 5354
+    </a>
+   </div>
+  </div>
+
+  <div class="copy">© 2025 Teataimi. All rights reserved.</div>
+</footer>
+
+<script defer src="auth.js"></script>
+</body>
+</html>

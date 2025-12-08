@@ -1,9 +1,15 @@
-from flask import Flask, render_template_string, request, redirect, url_for
+from flask import Flask, render_template_string, request, redirect, url_for, session, flash, jsonify, send_from_directory
 import mysql.connector
 from datetime import datetime
 import os
+import json
+from functools import wraps
 
 app = Flask(__name__)
+app.secret_key = os.environ.get('SECRET_KEY', 'dev-secret-key')
+
+# Configure Flask to serve static files from 'static' folder
+app.config['STATIC_FOLDER'] = 'static'
 
 # Connect to MySQL database using environment variables for deployment
 DB_HOST = os.environ.get('DB_HOST', 'localhost')
@@ -21,9 +27,188 @@ def get_db_connection():
 
 # Keep a module-level connection for quick local use; production platforms should use
 # connection pooling or create per-request connections via get_db_connection().
+# Keep a module-level connection for quick local use; production platforms should use
+# connection pooling or create per-request connections via get_db_connection().
 db = get_db_connection()
 
-@app.route('/')
+
+# Serve static HTML/CSS/JS files from the static folder
+@app.route('/', methods=['GET'])
+def serve_index():
+    return send_from_directory('static', 'index.html')
+
+
+@app.route('/<path:filename>', methods=['GET'])
+def serve_static(filename):
+    # Try to serve as static file first, then as HTML if not found
+    import os.path
+    static_path = os.path.join('static', filename)
+    if os.path.exists(static_path):
+        return send_from_directory('static', filename)
+    # If file not found, try appending .html
+    html_path = os.path.join('static', filename + '.html')
+    if os.path.exists(html_path):
+        return send_from_directory('static', filename + '.html')
+    return 'Not Found', 404
+
+
+# ============ API ENDPOINTS ============
+
+# API endpoint: register user (receives JSON from frontend)
+@app.route('/api/register', methods=['POST'])
+def api_register():
+    data = request.get_json()
+    name = data.get('name')
+    email = data.get('email')
+    phone = data.get('phone', '')
+    password = data.get('password')
+    address = data.get('address', '')
+    
+    cursor = db.cursor(dictionary=True)
+    try:
+        cursor.execute("SELECT user_id FROM users WHERE email=%s", (email,))
+        if cursor.fetchone():
+            return jsonify({'error': 'Email already exists'}), 400
+        
+        cursor2 = db.cursor()
+        cursor2.execute("INSERT INTO users (name, email, phone, password, role, address, created_at) VALUES (%s,%s,%s,%s,'Customer',%s,NOW())", (name, email, phone, password, address))
+        db.commit()
+        return jsonify({'message': 'Registration successful'}), 201
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+
+# API endpoint: login user (receives JSON from frontend)
+@app.route('/api/login', methods=['POST'])
+def api_login():
+    data = request.get_json()
+    email = data.get('email')
+    password = data.get('password')
+    
+    cursor = db.cursor(dictionary=True)
+    try:
+        cursor.execute("SELECT user_id, name, role FROM users WHERE email=%s AND password=%s", (email, password))
+        user = cursor.fetchone()
+        if user:
+            session['user_id'] = user['user_id']
+            session['user_name'] = user['name']
+            session['role'] = user.get('role', 'Customer')
+            return jsonify({'message': 'Logged in', 'user': {'id': user['user_id'], 'name': user['name'], 'role': user['role']}}), 200
+        else:
+            return jsonify({'error': 'Invalid credentials'}), 401
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+
+# API endpoint: logout user
+@app.route('/api/logout', methods=['POST'])
+def api_logout():
+    session.clear()
+    return jsonify({'message': 'Logged out'}), 200
+
+
+# API endpoint: get current user from session
+@app.route('/api/current-user', methods=['GET'])
+def api_current_user():
+    if session.get('user_id'):
+        return jsonify({
+            'user_id': session.get('user_id'),
+            'user_name': session.get('user_name'),
+            'role': session.get('role')
+        }), 200
+    return jsonify({'error': 'Not logged in'}), 401
+
+
+# API endpoint: track order by order ID
+@app.route('/api/track/<int:order_id>', methods=['GET'])
+def api_track_order(order_id):
+    cursor = db.cursor(dictionary=True)
+    try:
+        cursor.execute("SELECT o.order_id, o.status, o.delivery_date, o.total_amount FROM orders WHERE order_id=%s", (order_id,))
+        order = cursor.fetchone()
+        if order:
+            return jsonify(order), 200
+        return jsonify({'error': 'Order not found'}), 404
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+
+# API endpoint: get all products for menu
+@app.route('/api/products', methods=['GET'])
+def api_products():
+    cursor = db.cursor(dictionary=True)
+    try:
+        cursor.execute("SELECT product_id, product_name, description, price FROM products")
+        products = cursor.fetchall()
+        return jsonify(products), 200
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+
+# API endpoint: place order (from frontend cart)
+@app.route('/api/place-order', methods=['POST'])
+def api_place_order():
+    if not session.get('user_id'):
+        return jsonify({'error': 'Not logged in'}), 401
+    
+    data = request.get_json()
+    items = data.get('items', [])  # list of {product_id, quantity}
+    delivery_date = data.get('delivery_date')
+    delivery_method = data.get('delivery_method', 'Pickup')  # Delivery or Pickup
+    
+    if not items:
+        return jsonify({'error': 'Cart is empty'}), 400
+    
+    cursor = db.cursor(dictionary=True)
+    cursor2 = db.cursor()
+    
+    try:
+        # Calculate total
+        total = 0
+        for item in items:
+            cursor.execute("SELECT price FROM products WHERE product_id=%s", (item['product_id'],))
+            prod = cursor.fetchone()
+            if prod:
+                total += prod['price'] * item['quantity']
+        
+        # Create order
+        cursor2.execute("INSERT INTO orders (user_id, delivery_date, status, total_amount) VALUES (%s,%s,'Pending',%s)", 
+                       (session['user_id'], delivery_date or None, total))
+        db.commit()
+        order_id = cursor2.lastrowid
+        
+        # Add order items
+        for item in items:
+            cursor.execute("SELECT price FROM products WHERE product_id=%s", (item['product_id'],))
+            prod = cursor.fetchone()
+            cursor2.execute("INSERT INTO order_items (order_id, product_id, quantity, price) VALUES (%s,%s,%s,%s)",
+                           (order_id, item['product_id'], item['quantity'], prod['price']))
+        db.commit()
+        
+        return jsonify({'message': 'Order placed', 'order_id': order_id}), 201
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+
+# API endpoint: get user's order history
+@app.route('/api/my-orders', methods=['GET'])
+def api_my_orders():
+    if not session.get('user_id'):
+        return jsonify({'error': 'Not logged in'}), 401
+    
+    cursor = db.cursor(dictionary=True)
+    try:
+        cursor.execute("SELECT o.order_id, o.order_date, o.status, o.delivery_date, o.total_amount FROM orders WHERE user_id=%s ORDER BY o.order_date DESC", 
+                      (session['user_id'],))
+        orders = cursor.fetchall()
+        return jsonify(orders), 200
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+
+# ============ LEGACY HTML ADMIN ROUTES (kept for management) ============
+
+@app.route('/admin')
 def index():
     cursor = db.cursor(dictionary=True)
 
@@ -151,6 +336,212 @@ def index():
     """
     return render_template_string(html, data=data)
 
+
+# Authentication: register, login, logout, forgot password (simple reset)
+@app.route('/register', methods=['GET', 'POST'])
+def register():
+    cursor = db.cursor()
+    if request.method == 'POST':
+        name = request.form.get('name')
+        email = request.form.get('email')
+        phone = request.form.get('phone')
+        password = request.form.get('password')
+        address = request.form.get('address')
+        cursor.execute("INSERT INTO users (name, email, phone, password, role, address, created_at) VALUES (%s,%s,%s,%s,'Customer',%s,NOW())", (name, email, phone, password, address))
+        db.commit()
+        flash('Account created. You may log in now.')
+        return redirect(url_for('login'))
+
+    html = """
+    <html><head><title>Register - TeaTaiMi</title></head>
+    <body>
+    <h1>Register</h1>
+    <form method="post">
+      <input name="name" placeholder="Name" required><br>
+      <input name="email" type="email" placeholder="Email" required><br>
+      <input name="phone" placeholder="Phone"><br>
+      <input name="password" type="password" placeholder="Password" required><br>
+      <textarea name="address" placeholder="Address"></textarea><br>
+      <button type="submit">Register</button>
+    </form>
+    <p><a href="/login">Back to login</a></p>
+    </body></html>
+    """
+    return render_template_string(html)
+
+
+@app.route('/login', methods=['GET', 'POST'])
+def login():
+    cursor = db.cursor(dictionary=True)
+    if request.method == 'POST':
+        email = request.form.get('email')
+        password = request.form.get('password')
+        cursor.execute("SELECT * FROM users WHERE email=%s AND password=%s", (email, password))
+        user = cursor.fetchone()
+        if user:
+            session['user_id'] = user['user_id']
+            session['user_name'] = user['name']
+            session['role'] = user.get('role', 'Customer')
+            flash('Logged in')
+            return redirect(url_for('index'))
+        else:
+            flash('Invalid credentials')
+
+    html = """
+    <html><head><title>Login - TeaTaiMi</title></head>
+    <body>
+    <h1>Login</h1>
+    <form method="post">
+      <input name="email" type="email" placeholder="Email" required><br>
+      <input name="password" type="password" placeholder="Password" required><br>
+      <button type="submit">Login</button>
+    </form>
+    <p><a href="/register">Register</a> | <a href="/forgot_password">Forgot Password</a></p>
+    </body></html>
+    """
+    return render_template_string(html)
+
+
+@app.route('/logout')
+def logout():
+    session.clear()
+    flash('Logged out')
+    return redirect(url_for('index'))
+
+
+@app.route('/forgot_password', methods=['GET', 'POST'])
+def forgot_password():
+    cursor = db.cursor(dictionary=True)
+    if request.method == 'POST':
+        email = request.form.get('email')
+        cursor.execute("SELECT * FROM users WHERE email=%s", (email,))
+        user = cursor.fetchone()
+        if not user:
+            flash('Email not found')
+            return redirect(url_for('forgot_password'))
+        # simple reset: set new password provided
+        newpw = request.form.get('new_password')
+        if newpw:
+            cursor2 = db.cursor()
+            cursor2.execute("UPDATE users SET password=%s WHERE user_id=%s", (newpw, user['user_id']))
+            db.commit()
+            flash('Password updated. Please log in.')
+            return redirect(url_for('login'))
+
+    html = """
+    <html><head><title>Reset Password - TeaTaiMi</title></head>
+    <body>
+    <h1>Forgot Password</h1>
+    <form method="post">
+      <input name="email" type="email" placeholder="Your account email" required><br>
+      <input name="new_password" type="password" placeholder="New password (enter to reset)" required><br>
+      <button type="submit">Reset Password</button>
+    </form>
+    </body></html>
+    """
+    return render_template_string(html)
+
+
+# Track order - customers can enter their order id to see status
+@app.route('/track_order', methods=['GET', 'POST'])
+def track_order():
+    cursor = db.cursor(dictionary=True)
+    order = None
+    if request.method == 'POST':
+        oid = request.form.get('order_id')
+        cursor.execute("SELECT o.*, u.email as customer_email FROM orders o LEFT JOIN users u ON o.user_id=u.user_id WHERE o.order_id=%s", (oid,))
+        order = cursor.fetchone()
+
+    html = """
+    <html><head><title>Track Order - TeaTaiMi</title></head>
+    <body>
+    <h1>Track Order</h1>
+    <form method="post">
+      <input name="order_id" placeholder="Order ID" required>
+      <button type="submit">Lookup</button>
+    </form>
+    {% if order %}
+      <h2>Order {{ order.order_id }}</h2>
+      <p>Status: {{ order.status }}</p>
+      <p>Delivery date: {{ order.delivery_date }}</p>
+      <p>Customer email: {{ order.customer_email }}</p>
+    {% endif %}
+    </body></html>
+    """
+    return render_template_string(html, order=order)
+
+
+# Notify customer (simulated) - admin only
+@app.route('/notify_customer', methods=['GET', 'POST'])
+def notify_customer():
+    if session.get('role') != 'Admin' and session.get('role') != 'Seller':
+        flash('Unauthorized')
+        return redirect(url_for('index'))
+
+    cursor = db.cursor(dictionary=True)
+    message = None
+    if request.method == 'POST':
+        oid = request.form.get('order_id')
+        msg = request.form.get('message')
+        cursor.execute("SELECT o.order_id, u.email FROM orders o LEFT JOIN users u ON o.user_id=u.user_id WHERE o.order_id=%s", (oid,))
+        row = cursor.fetchone()
+        if row:
+            # simulation: log to console and show success to user
+            print(f"Notify {row['email']}: {msg}")
+            message = f"Notification sent to {row['email']} (simulated)"
+        else:
+            message = 'Order not found'
+
+    html = """
+    <html><head><title>Notify Customer - TeaTaiMi</title></head>
+    <body>
+    <h1>Notify Customer (simulated)</h1>
+    <form method="post">
+      <input name="order_id" placeholder="Order ID" required><br>
+      <textarea name="message" placeholder="Message"></textarea><br>
+      <button type="submit">Send</button>
+    </form>
+    {% if message %}<p>{{ message }}</p>{% endif %}
+    </body></html>
+    """
+    return render_template_string(html, message=message)
+
+
+# Edit customer record (manage customer records)
+@app.route('/edit_customer/<int:user_id>', methods=['GET', 'POST'])
+def edit_customer(user_id):
+    cursor = db.cursor(dictionary=True)
+    if request.method == 'POST':
+        name = request.form.get('name')
+        email = request.form.get('email')
+        phone = request.form.get('phone')
+        address = request.form.get('address')
+        cursor2 = db.cursor()
+        cursor2.execute("UPDATE users SET name=%s, email=%s, phone=%s, address=%s WHERE user_id=%s", (name, email, phone, address, user_id))
+        db.commit()
+        flash('Customer updated')
+        return redirect(url_for('customers'))
+
+    cursor.execute("SELECT * FROM users WHERE user_id=%s", (user_id,))
+    user = cursor.fetchone()
+    if not user:
+        return 'User not found', 404
+
+    html = """
+    <html><head><title>Edit Customer - TeaTaiMi</title></head>
+    <body>
+    <h1>Edit Customer</h1>
+    <form method="post">
+      <input name="name" value="{{ user.name }}"><br>
+      <input name="email" value="{{ user.email }}"><br>
+      <input name="phone" value="{{ user.phone }}"><br>
+      <textarea name="address">{{ user.address }}</textarea><br>
+      <button type="submit">Save</button>
+    </form>
+    </body></html>
+    """
+    return render_template_string(html, user=user)
+
 # Customers: view and add
 @app.route('/customers', methods=['GET', 'POST'])
 def customers():
@@ -235,10 +626,10 @@ def orders():
         LEFT JOIN users u ON o.user_id = u.user_id
         ORDER BY o.order_date DESC
     """)
-    orders = cursor.fetchall()
+    orders_list = cursor.fetchall()
 
     # fetch items for each order
-    for o in orders:
+    for o in orders_list:
         cursor.execute("SELECT oi.*, p.product_name FROM order_items oi LEFT JOIN products p ON oi.product_id = p.product_id WHERE oi.order_id=%s", (o['order_id'],))
         o['items'] = cursor.fetchall()
 
@@ -274,7 +665,7 @@ def orders():
                     <h1>Orders</h1>
                     <table>
                         <tr><th>Order ID</th><th>Customer</th><th>Order Date</th><th>Delivery Date</th><th>Status</th><th>Total</th><th>Items</th><th>Update</th></tr>
-                        {% for o in orders %}
+                        {% for o in orders_list %}
                             <tr>
                                 <td>{{ o.order_id }}</td>
                                 <td>{{ o.customer_name }}</td>
@@ -308,7 +699,7 @@ def orders():
         </body>
         </html>
         """
-    return render_template_string(html, orders=orders)
+    return render_template_string(html, orders=orders_list)
 
 @app.route('/update_order/<int:order_id>', methods=['POST'])
 def update_order(order_id):

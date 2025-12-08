@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Teataimi — Your Favourite Desserts</title>
+  <link rel="stylesheet" href="style.css" />
+  <link rel="stylesheet"
+    href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+</head>
+<body>
+
+<!-- NAV -->
+<header class="nav">
+  <div class="nav-inner">
+
+    <div class="brand">
+      <img src="images/logo.png" alt="Teataimi Logo" class="brand-logo-img">
+      <span class="brand-name">Teataimi</span>
+    </div>
+
+    <div class="nav-links">
+      <a href="index.html">Home</a>
+      <a href="menu.html">Menu</a>
+      <a href="about.html">About</a>
+      <a href="track.html">Track Order</a>
+
+      <a id="nav-orders" href="order-history.html" style="display:none;">My Orders</a>
+      <a id="nav-cart" href="cart.html" class="icon-btn">🛒</a>
+
+      <a id="nav-logout" href="#" onclick="logoutUser()">
+        <i class="fa-solid fa-right-from-bracket"></i>
+      </a>
+
+      <!-- AUTH BUTTONS WHEN NOT LOGGED IN -->
+      <a id="nav-login" href="login.html">Login</a>
+      <a id="nav-register" href="register.html">Register</a>
+    </div>
+
+  </div>
+</header>
+
+<section id="home" class="hero">
+  <div class="hero-overlay">
+    <h1 class="hero-title">
+      Delicious Desserts<br>
+      <span class="accent">Made with love</span>
+    </h1>
+
+    <div class="hero-actions">
+      <a class="btn btn-primary" href="menu.html">Order Now</a>
+      <a class="btn btn-primary" href="about.html">Our Story</a>
+    </div>
+  </div>
+</section>
+
+
+
+
+<!-- ABOUT -->
+<section id="about" class="about">
+  <div class="about-inner">
+    <h2>About Teataimi</h2>
+    <p>Every dessert is handcrafted, small-batch and decorated to make your celebrations extra sweet. From classic cheesecakes to playful cakesicles, we bake with care and a little sprinkle of joy.</p>
+  </div>
+</section>
+
+ <!-- ===== FEATURES ===== -->
+  <section class="features-section">
+    <h2>Why Choose Us?</h2>
+    <div class="features">
+      <div class="feature-card">
+        <img src="images/ingredients.jpg" alt="Hand-Selected Ingredients">
+        <h3>Hand-Selected Ingredients</h3>
+        <p>Savor better flavor from fresh, high-quality and trusted components.</p>
+      </div>
+      <div class="feature-card">
+        <img src="images/timing.webp" alt="Flexible Ordering & Timing">
+        <h3>Flexible Ordering & Timing</h3>
+        <p>Easier coordination for events and greater scheduling flexibility.</p>
+      </div>
+      <div class="feature-card">
+        <img src="images/pristine.webp" alt="Pristine Baking Environment">
+        <h3>Pristine Baking Environment</h3>
+        <p>Absolute confidence in the cleanliness and safety of your food.</p>
+      </div>
+    </div>
+  </section>
+
+<!-- BEST SELLERS -->
+<section id="menu" class="featured">
+  <div class="section-head">
+    <h2>Our Best Sellers</h2>
+    <p class="muted">Hand-picked favourites — made fresh daily.</p>
+  </div>
+
+  <div class="product-grid">
+
+    <article class="product-card">
+      <img src="images/mbcc.png" alt="Mini Burnt Cheesecake" class="product-img">
+      <div class="product-body">
+        <h3>Mini Burnt Cheesecake</h3>
+        <p class="product-desc">12 pcs of creamy, velvety Basque-style cheesecake.</p>
+        <div class="product-meta">
+          <span class="price">RM 45 / box</span>
+          <button class="btn btn-sm" onclick="addToCart('Mini Burnt Cheesecake',45,'images/mbcc.png')">Add</button>
+        </div>
+      </div>
+    </article>
+
+    <article class="product-card">
+      <img src="images/brownies.png" alt="Brownies" class="product-img">
+      <div class="product-body">
+        <h3>Brownies</h3>
+        <p class="product-desc">9" of fudgy and chocolatey with a perfect crackly top.</p>
+        <div class="product-meta">
+          <span class="price">RM 60 / box</span>
+          <button class="btn btn-sm" onclick="addToCart('Brownies',60,'images/brownies.png')">Add</button>
+        </div>
+      </div>
+    </article>
+
+    <article class="product-card">
+      <img src="images/lbc.png" alt="Lotus Biscoff Cheese Tart" class="product-img">
+      <div class="product-body">
+        <h3>Lotus Biscoff Cheese Tart</h3>
+        <p class="product-desc">25 pcs of buttery tart shell, creamy cheese filling, topped with Biscoff glaze and crumbs.</p>
+        <div class="product-meta">
+          <span class="price">RM 50 / box</span>
+          <button class="btn btn-sm" onclick="addToCart('Lotus Biscoff Cheese Tart',50,'images/lbc.png')">Add</button>
+        </div>
+      </div>
+    </article>
+
+    <article class="product-card">
+      <img src="images/cakesicles.png" alt="Cakesicles" class="product-img">
+      <div class="product-body">
+        <h3>Cakesicles</h3>
+        <p class="product-desc">6 pcs of cake and frosting, molded like a popsicle, coated in chocolate shell.</p>
+        <div class="product-meta">
+          <span class="price">RM 60 / box</span>
+          <button class="btn btn-sm" onclick="addToCart('Cakesicles',60,'images/cakesicles.png')">Add</button>
+        </div>
+      </div>
+    </article>
+
+  </div>
+</section>
+
+<!-- TESTIMONIALS -->
+<section class="testimonials">
+  <div class="section-head center">
+    <h2>Customer Love</h2>
+    <p class="muted">What our customers say</p>
+  </div>
+
+  <div class="testi-grid">
+    <blockquote class="testi">
+      <p>"The packaging is gorgeous and the cheesecake is divine!"</p>
+      <cite>— Aisyah</cite>
+    </blockquote>
+
+    <blockquote class="testi">
+      <p>"Perfect birthday cake! soft, pretty and delicious."</p>
+      <cite>— Hana</cite>
+    </blockquote>
+
+    <blockquote class="testi">
+      <p>"Cute cakesicles that were a hit at our party."</p>
+      <cite>— Mira</cite>
+    </blockquote>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer class="footer">
+  <div class="footer-inner">
+    <div class="footer-left">
+      <div class="brand">
+        <span class="brand-name">Teataimi</span>
+      </div>
+      <p class="muted">Delicious desserts • Local humble dessert shop</p>
+    </div>
+
+    <div class="footer-block">
+    <strong>Contact Us</strong><br>
+    
+    <!-- Instagram Link -->
+    <a href="https://instagram.com/teataimi" target="_blank" style="display:flex; align-items:center; gap:5px; text-decoration:none; color:#4b3d2f; margin-bottom:5px;">
+        <img src="images/instagram.avif" alt="Instagram" style="width:20px; height:20px;">
+        teataimi
+    </a>
+    
+    <!-- WhatsApp Link -->
+    <a href="https://wa.me/601168325354" target="_blank" style="display:flex; align-items:center; gap:5px; text-decoration:none; color:#4b3d2f; margin-bottom:5px;">
+        <img src="images/whatsapp.avif" alt="WhatsApp" style="width:20px; height:20px;">
+        +60 116832 5354
+    </a>
+   </div>
+  </div>
+
+  <div class="copy">© 2025 Teataimi. All rights reserved.</div>
+</footer>
+
+<script defer src="auth.js"></script>
+</body>
+</html>
+
+

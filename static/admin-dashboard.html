@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Admin Dashboard | Teataimi</title>
+<link rel="stylesheet" href="style.css">
+<link rel="stylesheet"
+  href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+<style>
+/* styles same as before */
+.dashboard-container {
+  max-width: 1100px;
+  margin: 50px auto;
+  padding: 20px;
+}
+h1 {text-align:center;font-size:32px;font-weight:700;}
+.section {margin-bottom:40px;background:#fff;padding:20px;border-radius:12px;
+box-shadow:0 0 6px rgba(0,0,0,0.1);}
+table {width:100%;border-collapse:collapse;margin-top:10px;}
+table th,table td {border:1px solid #ddd;padding:10px;text-align:center;}
+table th{background:#333;color:#fff;}
+.status{padding:5px 10px;border-radius:6px;font-weight:bold;color:white;}
+.status.Pending{background:#f57c00;}
+.status.Preparing{background:#1976d2;}
+.status.Completed{background:#2e7d32;}
+.btn-danger{background:red;color:white;border:none;padding:6px 10px;border-radius:6px;}
+</style>
+</head>
+<body>
+
+<header class="nav">
+  <div class="nav-inner">
+    <img src="images/logo.png" alt="Teataimi Logo" class="brand-logo-img">
+    <div class="brand"><span class="brand-name">Teataimi</span></div>
+    <a id="nav-logout" href="#" onclick="logoutUser()">
+        <i class="fa-solid fa-right-from-bracket"></i>
+      </a>
+  </div>
+</header>
+
+<div class="dashboard-container">
+
+  <h1>Admin Dashboard</h1>
+
+  <!-- ORDERS -->
+  <div class="section">
+  <h2>Order Management</h2>
+
+  <div class="table-wrapper">
+    <table id="orderTable"></table>
+  </div>
+
+</div>
+
+
+  <!-- USERS -->
+  <div class="section">
+    <h2>Customers</h2>
+    <table id="customerTable"></table>
+  </div>
+
+</div>
+
+<script src="auth.js"></script>
+<script>
+// allow only admin
+const current = JSON.parse(localStorage.getItem("loggedInUser"));
+if (!current || current.role !== "admin") {
+  window.location.href = "index.html";
+}
+
+/* ========== LOAD ORDERS FIXED ==========*/
+function loadOrders(){
+  let orders = JSON.parse(localStorage.getItem("orders")) || [];
+  let table = document.getElementById("orderTable");
+
+  table.innerHTML = `
+    <tr>
+      <th>Order No</th>
+      <th>Customer</th>
+      <th>Phone</th>
+      <th>Date</th>
+      <th>Time</th>
+      <th>Items</th>
+      <th>Delivery</th>
+      <th>Address</th>
+      <th>Payment</th>
+      <th>Status</th>
+      <th>Change</th>
+      <th>Remove</th>
+    </tr>
+  `;
+
+  orders.forEach((o,i)=>{
+    let itemsHTML = o.items.map(x => `${x.name} x ${x.quantity}`).join("<br>");
+    table.innerHTML += `
+      <tr>
+        <td>${o.orderNo}</td>
+        <td>${o.name}</td>
+        <td>${o.phone}</td>
+        <td>${o.date}</td>
+        <td>${o.time}</td>
+        <td>${itemsHTML}</td>
+        <td>${o.option}</td>
+        <td>${o.address}</td>
+        <td>${o.payment}</td>
+
+        <td><span class="status ${o.status}">${o.status}</span></td>
+
+        <td>
+          <select onchange="updateStatus(${i},this.value)">
+            <option ${o.status==="Pending"?"selected":""}>Pending</option>
+            <option ${o.status==="Preparing"?"selected":""}>Preparing</option>
+            <option ${o.status==="Completed"?"selected":""}>Completed</option>
+          </select>
+        </td>
+
+        <td>
+          <button class="btn-danger" onclick="deleteOrder(${i})">
+            Delete
+          </button>
+        </td>
+      </tr>
+    `;
+  });
+}
+
+/* ========== ORDER ACTIONS ==========*/
+function updateStatus(index, status){
+  let orders = JSON.parse(localStorage.getItem("orders")) || [];
+  orders[index].status = status;
+  localStorage.setItem("orders", JSON.stringify(orders));
+  loadOrders();
+}
+function deleteOrder(i){
+  if(!confirm("Delete order?"))return;
+  let orders=JSON.parse(localStorage.getItem("orders"))||[];
+  orders.splice(i,1);
+  localStorage.setItem("orders",JSON.stringify(orders));
+  loadOrders();
+}
+
+/* ========== LOAD CUSTOMERS FIXED ==========*/
+function loadCustomers(){
+  let users = JSON.parse(localStorage.getItem("users")) || [];
+  let orders = JSON.parse(localStorage.getItem("orders")) || [];
+  let table = document.getElementById("customerTable");
+
+  table.innerHTML = `
+    <tr>
+      <th>Email</th>
+      <th>Total Orders</th>
+      <th>Action</th>
+    </tr>
+  `;
+
+  users.forEach(u=>{
+    let total = orders.filter(o=>o.user===u.email).length;
+    table.innerHTML += `
+      <tr>
+        <td>${u.email}</td>
+        <td>${total}</td>
+        <td>
+          <button class="btn-danger" onclick="removeCustomer('${u.email}')">
+            Delete User
+          </button>
+        </td>
+      </tr>
+    `;
+  });
+}
+
+function removeCustomer(email){
+  if(!confirm("Delete user?"))return;
+  let users=JSON.parse(localStorage.getItem("users"))||[];
+  let orders=JSON.parse(localStorage.getItem("orders"))||[];
+  localStorage.setItem("users",JSON.stringify(users.filter(u=>u.email!==email)));
+  localStorage.setItem("orders",JSON.stringify(orders.filter(o=>o.user!==email)));
+  loadCustomers();
+  loadOrders();
+}
+
+loadOrders();
+loadCustomers();
+</script>
+</body>
+</html>
+
+
+
