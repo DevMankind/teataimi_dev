@@ -127,7 +127,9 @@ CREATE TABLE `users` (
 
 INSERT INTO `users` (`user_id`, `name`, `email`, `phone`, `password`, `role`, `address`, `created_at`) VALUES
 (1, 'Admin001', 'admin@tetaimi.com', '01119111568', 'Admin001', 'Admin', NULL, '2025-11-02 08:43:01'),
-(3, 'Testing', 'test123@gmail.com', '0189161789', 'Testing123', 'Customer', '', '2025-11-02 08:43:01');
+(2, 'Admin User', 'admin@teataimi.com', '0000000000', 'admin123', 'Admin', 'Admin Office', NOW()),
+(3, 'Testing', 'test123@gmail.com', '0189161789', 'Testing123', 'Customer', '', '2025-11-02 08:43:01'),
+(4, 'Demo Customer', 'demo@teataimi.com', '0123456789', 'demo123', 'Customer', '123 Demo Street, Penang', NOW());
 
 --
 -- Indexes for dumped tables

@@ -27,9 +27,17 @@ def get_db_connection():
 
 # Keep a module-level connection for quick local use; production platforms should use
 # connection pooling or create per-request connections via get_db_connection().
-# Keep a module-level connection for quick local use; production platforms should use
-# connection pooling or create per-request connections via get_db_connection().
-db = get_db_connection()
+db = None
+
+def get_db():
+    """Get or reconnect the database connection"""
+    global db
+    try:
+        if db is None or not db.is_connected():
+            db = get_db_connection()
+    except:
+        db = get_db_connection()
+    return db
 
 
 # Serve static HTML/CSS/JS files from the static folder
@@ -64,15 +72,15 @@ def api_register():
     password = data.get('password')
     address = data.get('address', '')
     
-    cursor = db.cursor(dictionary=True)
+    cursor = get_db().cursor(dictionary=True)
     try:
         cursor.execute("SELECT user_id FROM users WHERE email=%s", (email,))
         if cursor.fetchone():
             return jsonify({'error': 'Email already exists'}), 400
         
-        cursor2 = db.cursor()
+        cursor2 = get_db().cursor()
         cursor2.execute("INSERT INTO users (name, email, phone, password, role, address, created_at) VALUES (%s,%s,%s,%s,'Customer',%s,NOW())", (name, email, phone, password, address))
-        db.commit()
+        get_db().commit()
         return jsonify({'message': 'Registration successful'}), 201
     except Exception as e:
         return jsonify({'error': str(e)}), 500
@@ -85,7 +93,7 @@ def api_login():
     email = data.get('email')
     password = data.get('password')
     
-    cursor = db.cursor(dictionary=True)
+    cursor = get_db().cursor(dictionary=True)
     try:
         cursor.execute("SELECT user_id, name, role FROM users WHERE email=%s AND password=%s", (email, password))
         user = cursor.fetchone()
@@ -122,7 +130,7 @@ def api_current_user():
 # API endpoint: track order by order ID
 @app.route('/api/track/<int:order_id>', methods=['GET'])
 def api_track_order(order_id):
-    cursor = db.cursor(dictionary=True)
+    cursor = get_db().cursor(dictionary=True)
     try:
         cursor.execute("SELECT o.order_id, o.status, o.delivery_date, o.total_amount FROM orders WHERE order_id=%s", (order_id,))
         order = cursor.fetchone()
@@ -136,7 +144,7 @@ def api_track_order(order_id):
 # API endpoint: get all products for menu
 @app.route('/api/products', methods=['GET'])
 def api_products():
-    cursor = db.cursor(dictionary=True)
+    cursor = get_db().cursor(dictionary=True)
     try:
         cursor.execute("SELECT product_id, product_name, description, price FROM products")
         products = cursor.fetchall()
@@ -159,8 +167,8 @@ def api_place_order():
     if not items:
         return jsonify({'error': 'Cart is empty'}), 400
     
-    cursor = db.cursor(dictionary=True)
-    cursor2 = db.cursor()
+    cursor = get_db().cursor(dictionary=True)
+    cursor2 = get_db().cursor()
     
     try:
         # Calculate total
@@ -174,7 +182,7 @@ def api_place_order():
         # Create order
         cursor2.execute("INSERT INTO orders (user_id, delivery_date, status, total_amount) VALUES (%s,%s,'Pending',%s)", 
                        (session['user_id'], delivery_date or None, total))
-        db.commit()
+        get_db().commit()
         order_id = cursor2.lastrowid
         
         # Add order items
@@ -183,7 +191,7 @@ def api_place_order():
             prod = cursor.fetchone()
             cursor2.execute("INSERT INTO order_items (order_id, product_id, quantity, price) VALUES (%s,%s,%s,%s)",
                            (order_id, item['product_id'], item['quantity'], prod['price']))
-        db.commit()
+        get_db().commit()
         
         return jsonify({'message': 'Order placed', 'order_id': order_id}), 201
     except Exception as e:
@@ -196,7 +204,7 @@ def api_my_orders():
     if not session.get('user_id'):
         return jsonify({'error': 'Not logged in'}), 401
     
-    cursor = db.cursor(dictionary=True)
+    cursor = get_db().cursor(dictionary=True)
     try:
         cursor.execute("SELECT o.order_id, o.order_date, o.status, o.delivery_date, o.total_amount FROM orders WHERE user_id=%s ORDER BY o.order_date DESC", 
                       (session['user_id'],))
@@ -210,7 +218,7 @@ def api_my_orders():
 
 @app.route('/admin')
 def index():
-    cursor = db.cursor(dictionary=True)
+    cursor = get_db().cursor(dictionary=True)
 
     tables = ['users', 'products', 'orders', 'order_items']
     data = {}
@@ -340,7 +348,7 @@ def index():
 # Authentication: register, login, logout, forgot password (simple reset)
 @app.route('/register', methods=['GET', 'POST'])
 def register():
-    cursor = db.cursor()
+    cursor = get_db().cursor()
     if request.method == 'POST':
         name = request.form.get('name')
         email = request.form.get('email')
@@ -348,7 +356,7 @@ def register():
         password = request.form.get('password')
         address = request.form.get('address')
         cursor.execute("INSERT INTO users (name, email, phone, password, role, address, created_at) VALUES (%s,%s,%s,%s,'Customer',%s,NOW())", (name, email, phone, password, address))
-        db.commit()
+        get_db().commit()
         flash('Account created. You may log in now.')
         return redirect(url_for('login'))
 
@@ -372,7 +380,7 @@ def register():
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
-    cursor = db.cursor(dictionary=True)
+    cursor = get_db().cursor(dictionary=True)
     if request.method == 'POST':
         email = request.form.get('email')
         password = request.form.get('password')
@@ -411,7 +419,7 @@ def logout():
 
 @app.route('/forgot_password', methods=['GET', 'POST'])
 def forgot_password():
-    cursor = db.cursor(dictionary=True)
+    cursor = get_db().cursor(dictionary=True)
     if request.method == 'POST':
         email = request.form.get('email')
         cursor.execute("SELECT * FROM users WHERE email=%s", (email,))
@@ -422,9 +430,9 @@ def forgot_password():
         # simple reset: set new password provided
         newpw = request.form.get('new_password')
         if newpw:
-            cursor2 = db.cursor()
+            cursor2 = get_db().cursor()
             cursor2.execute("UPDATE users SET password=%s WHERE user_id=%s", (newpw, user['user_id']))
-            db.commit()
+            get_db().commit()
             flash('Password updated. Please log in.')
             return redirect(url_for('login'))
 
@@ -445,7 +453,7 @@ def forgot_password():
 # Track order - customers can enter their order id to see status
 @app.route('/track_order', methods=['GET', 'POST'])
 def track_order():
-    cursor = db.cursor(dictionary=True)
+    cursor = get_db().cursor(dictionary=True)
     order = None
     if request.method == 'POST':
         oid = request.form.get('order_id')
@@ -478,7 +486,7 @@ def notify_customer():
         flash('Unauthorized')
         return redirect(url_for('index'))
 
-    cursor = db.cursor(dictionary=True)
+    cursor = get_db().cursor(dictionary=True)
     message = None
     if request.method == 'POST':
         oid = request.form.get('order_id')
@@ -510,15 +518,15 @@ def notify_customer():
 # Edit customer record (manage customer records)
 @app.route('/edit_customer/<int:user_id>', methods=['GET', 'POST'])
 def edit_customer(user_id):
-    cursor = db.cursor(dictionary=True)
+    cursor = get_db().cursor(dictionary=True)
     if request.method == 'POST':
         name = request.form.get('name')
         email = request.form.get('email')
         phone = request.form.get('phone')
         address = request.form.get('address')
-        cursor2 = db.cursor()
+        cursor2 = get_db().cursor()
         cursor2.execute("UPDATE users SET name=%s, email=%s, phone=%s, address=%s WHERE user_id=%s", (name, email, phone, address, user_id))
-        db.commit()
+        get_db().commit()
         flash('Customer updated')
         return redirect(url_for('customers'))
 
@@ -545,7 +553,7 @@ def edit_customer(user_id):
 # Customers: view and add
 @app.route('/customers', methods=['GET', 'POST'])
 def customers():
-    cursor = db.cursor(dictionary=True)
+    cursor = get_db().cursor(dictionary=True)
     if request.method == 'POST':
         name = request.form.get('name')
         email = request.form.get('email')
@@ -553,7 +561,7 @@ def customers():
         password = request.form.get('password')
         address = request.form.get('address')
         cursor.execute("INSERT INTO users (name, email, phone, password, role, address, created_at) VALUES (%s,%s,%s,%s,'Customer',%s,NOW())", (name, email, phone, password, address))
-        db.commit()
+        get_db().commit()
         return redirect(url_for('customers'))
 
     cursor.execute("SELECT * FROM users WHERE role='Customer'")
@@ -619,7 +627,7 @@ def customers():
 # Orders: view and update status
 @app.route('/orders', methods=['GET'])
 def orders():
-    cursor = db.cursor(dictionary=True)
+    cursor = get_db().cursor(dictionary=True)
     cursor.execute("""
         SELECT o.*, u.name as customer_name
         FROM orders o
@@ -704,16 +712,16 @@ def orders():
 @app.route('/update_order/<int:order_id>', methods=['POST'])
 def update_order(order_id):
     new_status = request.form.get('status')
-    cursor = db.cursor()
+    cursor = get_db().cursor()
     cursor.execute("UPDATE orders SET status=%s WHERE order_id=%s", (new_status, order_id))
-    db.commit()
+    get_db().commit()
     return redirect(url_for('orders'))
 
 
 # Place order: simple form to create an order (single-item) for demonstration
 @app.route('/place_order', methods=['GET', 'POST'])
 def place_order():
-    cursor = db.cursor(dictionary=True)
+    cursor = get_db().cursor(dictionary=True)
     if request.method == 'POST':
         user_id = request.form.get('user_id')
         product_id = request.form.get('product_id')
@@ -729,14 +737,14 @@ def place_order():
         total = price * quantity
 
         # insert order
-        cursor = db.cursor()
+        cursor = get_db().cursor()
         cursor.execute("INSERT INTO orders (user_id, delivery_date, status, total_amount) VALUES (%s,%s,'Pending',%s)", (user_id or None, delivery_date or None, total))
-        db.commit()
+        get_db().commit()
         order_id = cursor.lastrowid
 
         # insert order_item
         cursor.execute("INSERT INTO order_items (order_id, product_id, quantity, price) VALUES (%s,%s,%s,%s)", (order_id, product_id, quantity, price))
-        db.commit()
+        get_db().commit()
         return redirect(url_for('orders'))
 
     # GET - show form
@@ -810,3 +818,4 @@ def place_order():
 
 if __name__ == '__main__':
     app.run(debug=True)
+

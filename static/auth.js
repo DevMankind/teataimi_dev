@@ -309,8 +309,77 @@ async function placeOrder(event) {
 
 
 /* ---------------------------------------------------
-   LOAD ORDER HISTORY
+   HANDLE CHECKOUT (from checkout.html form)
+   Maps checkout form fields to order data
 --------------------------------------------------- */
+async function handleCheckout(event) {
+  event.preventDefault();
+
+  let user = await getCurrentUser();
+  if (!user) {
+    alert("Please login first");
+    return;
+  }
+
+  // Get cart from localStorage
+  let cart = getCart();
+  if (cart.length === 0) {
+    alert("Your cart is empty");
+    return;
+  }
+
+  // Get checkout form data
+  let name = document.getElementById("cust-name")?.value.trim();
+  let phone = document.getElementById("cust-phone")?.value.trim();
+  let deliveryDate = document.getElementById("order-date")?.value;
+  let deliveryMethod = document.getElementById("delivery-option")?.value || "Pickup";
+  
+  // Get delivery address if needed
+  let address = "";
+  if (deliveryMethod === "Delivery") {
+    let addr1 = document.getElementById("cust-address1")?.value.trim() || "";
+    let city = document.getElementById("cust-city")?.value.trim() || "";
+    let postcode = document.getElementById("cust-postcode")?.value.trim() || "";
+    let state = document.getElementById("cust-state")?.value.trim() || "";
+    address = `${addr1}, ${city} ${postcode}, ${state}`;
+  }
+
+  if (!deliveryDate) {
+    alert("Please select a delivery date");
+    return;
+  }
+
+  try {
+    const response = await fetch('/api/place-order', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        items: cart.map(item => ({ product_id: item.product_id, quantity: item.quantity })),
+        delivery_date: deliveryDate,
+        delivery_method: deliveryMethod,
+        name: name,
+        phone: phone,
+        address: address
+      })
+    });
+
+    const data = await response.json();
+
+    if (response.ok) {
+      localStorage.removeItem("cart");
+      alert(`Order placed successfully! Order ID: ${data.order_id}`);
+      window.location.href = "success.html";
+    } else {
+      alert(data.error || "Failed to place order");
+    }
+  } catch (e) {
+    console.error('Checkout error:', e);
+    alert("Checkout error: " + e.message);
+  }
+}
+
+
+
 async function loadOrderHistory() {
   try {
     const response = await fetch('/api/my-orders');
