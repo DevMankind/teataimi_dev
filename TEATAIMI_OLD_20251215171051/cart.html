@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Checkout | Teataimi</title>
+  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+
+<header class="nav">
+  <div class="nav-inner">
+    <div class="brand">
+      <img src="images/logo.png" alt="Teataimi Logo" class="brand-logo-img">
+      <span class="brand-name">Teataimi</span>
+    </div>
+
+    <div class="nav-links">
+      <a href="index.html">Home</a>
+      <a href="menu.html">Menu</a>
+      <a href="track.html">Track Order</a>
+      <a id="nav-cart" href="cart.html" class="icon-btn">🛒</a>
+    </div>
+  </div>
+</header>
+
+<main class="cart-container">
+  <h1 style="margin-bottom:20px; color:var(--accent)">Checkout</h1>
+
+  <div class="cart-grid">
+    
+    <section class="checkout-form-col">
+      <div class="product-card" style="padding: 20px; display:block;">
+        <h3 style="margin-bottom:15px;">Delivery Details</h3>
+        
+        <form id="checkout-form">
+          <input type="hidden" id="user_id" name="user_id">
+
+          <div class="form-group" style="margin-bottom:15px;">
+            <label>Full Name</label>
+            <input type="text" id="name" required placeholder="Receiver's Name" style="width:100%; padding:10px;">
+          </div>
+
+          <div class="form-group" style="margin-bottom:15px;">
+            <label>Phone Number</label>
+            <input type="tel" id="phone" required placeholder="012-3456789" style="width:100%; padding:10px;">
+          </div>
+
+          <div class="form-group" style="margin-bottom:15px;">
+            <label>Delivery Address</label>
+            <textarea id="address" required rows="3" placeholder="Full address..." style="width:100%; padding:10px;"></textarea>
+          </div>
+
+          <div class="form-group" style="margin-bottom:15px;">
+            <label>Preferred Delivery Date</label>
+            <input type="date" id="delivery_date" required style="width:100%; padding:10px;">
+          </div>
+
+          <div class="form-group" style="margin-bottom:15px;">
+            <label>Payment Method</label>
+            <select style="width:100%; padding:10px;">
+              <option>Cash on Delivery</option>
+              <option>Online Banking (Manual Transfer)</option>
+            </select>
+          </div>
+        </form>
+      </div>
+    </section>
+
+    <aside class="cart-summary-col">
+      <div class="cart-summary">
+        <h3>Order Summary</h3>
+        <div id="checkout-items-list" style="margin-bottom:15px; max-height: 200px; overflow-y:auto;">
+          </div>
+
+        <div class="summary-line">
+          <span>Subtotal</span>
+          <span id="checkout-subtotal">RM 0.00</span>
+        </div>
+        <div class="summary-line">
+          <span>Delivery Fee</span>
+          <span>RM 5.00</span>
+        </div>
+        <div class="summary-line total">
+          <strong>Total to Pay</strong>
+          <strong id="checkout-total">RM 0.00</strong>
+        </div>
+
+        <button onclick="placeOrder()" class="btn btn-primary" style="width:100%; margin-top:15px;">
+          Confirm Order
+        </button>
+      </div>
+    </aside>
+
+  </div>
+</main>
+
+<script defer src="auth.js"></script>
+<script defer src="checkout.js"></script>
+
+</body>
+</html>

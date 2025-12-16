@@ -168,7 +168,14 @@ document.addEventListener("DOMContentLoaded", updateNavbar);
    CART FUNCTIONS (using localStorage for temp storage before checkout)
 --------------------------------------------------- */
 function getCart() {
-  return JSON.parse(localStorage.getItem("cart")) || [];
+  try {
+    return JSON.parse(localStorage.getItem("cart")) || [];
+  } catch (e) {
+    // malformed cart json -> reset
+    console.warn('Malformed cart in localStorage, resetting', e);
+    localStorage.removeItem('cart');
+    return [];
+  }
 }
 
 function saveCart(cart) {
@@ -184,12 +191,15 @@ function addToCart(productId, name, price) {
   }
 
   let cart = getCart();
-  let item = cart.find(i => i.product_id === productId);
-  
+  // normalize types
+  const pid = Number(productId);
+  const priceNum = parseFloat(String(price).replace(/[^0-9.-]+/g, '')) || 0;
+  let item = cart.find(i => Number(i.product_id) === pid);
+
   if (item) {
-    item.quantity += 1;
+    item.quantity = Number(item.quantity || 0) + 1;
   } else {
-    cart.push({ product_id: productId, name, price, quantity: 1 });
+    cart.push({ product_id: pid, name: name, price: priceNum, quantity: 1 });
   }
   
   saveCart(cart);
@@ -198,16 +208,20 @@ function addToCart(productId, name, price) {
 }
 
 function removeFromCart(productId) {
+  const pid = Number(productId);
   let cart = getCart();
-  cart = cart.filter(i => i.product_id !== productId);
+  cart = cart.filter(i => Number(i.product_id) !== pid);
   saveCart(cart);
+  updateCartIcon();
 }
 
 function updateCartQuantity(productId, quantity) {
+  const pid = Number(productId);
   let cart = getCart();
-  let item = cart.find(i => i.product_id === productId);
-  if (item) item.quantity = Math.max(1, quantity);
+  let item = cart.find(i => Number(i.product_id) === pid);
+  if (item) item.quantity = Math.max(1, Number(quantity) || 1);
   saveCart(cart);
+  updateCartIcon();
 }
 
 /* ---------------------------------------------------
@@ -217,8 +231,7 @@ function updateCartIcon() {
   let cart = getCart();
   let cartIcon = document.getElementById("nav-cart");
   if (!cartIcon) return;
-
-  let totalQty = cart.reduce((t, i) => t + i.quantity, 0);
+  let totalQty = cart.reduce((t, i) => t + (Number(i.quantity) || 0), 0);
   cartIcon.textContent = totalQty > 0 ? `🛒 (${totalQty})` : '🛒';
 }
 document.addEventListener("DOMContentLoaded", updateCartIcon);
@@ -239,26 +252,49 @@ function displayCart() {
     if (totalDiv) totalDiv.innerHTML = "Total: RM 0.00";
     return;
   }
-
   let total = 0;
   cartDiv.innerHTML = cart.map(item => {
-    let itemTotal = item.price * item.quantity;
+    // make sure price and quantity are numeric; strip non-numeric characters from price
+    const priceNum = parseFloat(String(item.price).replace(/[^0-9.-]+/g, '')) || 0;
+    const qtyNum = Number(item.quantity) || 0;
+    let itemTotal = priceNum * qtyNum;
     total += itemTotal;
+    const pid = Number(item.product_id);
     return `
       <div class="cart-item">
-        <span>${item.name} x ${item.quantity}</span>
+        <span>${item.name} x ${qtyNum}</span>
         <span>RM ${itemTotal.toFixed(2)}</span>
-        <input type="number" min="1" value="${item.quantity}" 
-               onchange="updateCartQuantity(${item.product_id}, this.value); displayCart()">
-        <button onclick="removeFromCart(${item.product_id}); displayCart()">Remove</button>
+        <input type="number" min="1" value="${qtyNum}" 
+               onchange="updateCartQuantity(${pid}, this.value); displayCart()">
+        <button onclick="removeFromCart(${pid}); displayCart()">Remove</button>
       </div>
     `;
   }).join('');
 
-  if (totalDiv) totalDiv.innerHTML = `Total: RM ${total.toFixed(2)}`;
+  if (totalDiv) totalDiv.innerHTML = `RM ${total.toFixed(2)}`;
+  // also update final total element if present
+  const finalEl = document.getElementById('cart-total-final');
+  if (finalEl) finalEl.innerHTML = `RM ${total.toFixed(2)}`;
+  // refresh cart icon badge
+  updateCartIcon();
 }
 document.addEventListener("DOMContentLoaded", displayCart);
 
+// Attach checkout button handler (works on cart pages in both static/ and TEATAIMI/ copies)
+document.addEventListener("DOMContentLoaded", function () {
+  const checkoutBtn = document.getElementById('checkout-btn');
+  if (checkoutBtn) {
+    checkoutBtn.addEventListener('click', function (e) {
+      // If there are items in cart, go to checkout page; otherwise alert
+      const cart = getCart();
+      if (!cart || cart.length === 0) {
+        alert('Your cart is empty');
+        return;
+      }
+      window.location.href = 'checkout.html';
+    });
+  }
+});
 
 /* ---------------------------------------------------
    PLACE ORDER

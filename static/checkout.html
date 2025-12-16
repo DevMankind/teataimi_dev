@@ -181,10 +181,9 @@ document.addEventListener("DOMContentLoaded", function () {
 
   /* UPDATE TOTAL */
   function updateTotal() {
-    // getCartKey is defined in auth.js (now loaded before this script)
-    const cartKey = getCartKey();
-    let cart = cartKey ? JSON.parse(localStorage.getItem(cartKey)) || [] : [];
-    let subtotal = cart.reduce((s, i) => s + i.price * i.quantity, 0);
+    // use getCart() from auth.js to read the shared cart
+    let cart = (typeof getCart === 'function') ? getCart() : (JSON.parse(localStorage.getItem('cart')) || []);
+    let subtotal = cart.reduce((s, i) => s + (parseFloat(i.price) || 0) * (Number(i.quantity) || 0), 0);
     let shipping = optionSelect.value === "Delivery" ? 8 : 0;
     document.getElementById("totalAmount").textContent =
       "RM " + (subtotal + shipping).toFixed(2);

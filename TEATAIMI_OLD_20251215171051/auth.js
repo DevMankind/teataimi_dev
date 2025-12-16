@@ -106,13 +106,18 @@ function updateNavbar() {
 
     logoutBtn.style.display = "inline-block";
 
+ 
   } else {
-    // NOT logged in
-    loginBtn.style.display = "inline-block";
-    registerBtn.style.display = "inline-block";
-    cartIcon.style.display = "none";
-    logoutBtn.style.display = "none";
-  }
+    // NOT logged in
+    loginBtn.style.display = "inline-block";
+    registerBtn.style.display = "inline-block";
+    
+    // CHANGE THIS: Show cart icon but without the quantity update
+    cartIcon.style.display = "inline-block"; 
+    cartIcon.textContent = '🛒'; // Ensure it's just the icon if not logged in
+    
+    logoutBtn.style.display = "none";
+  }
 }
 document.addEventListener("DOMContentLoaded", updateNavbar);
 
